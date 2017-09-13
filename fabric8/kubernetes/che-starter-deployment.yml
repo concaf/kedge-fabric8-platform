@@ -1,0 +1,103 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=che-starter&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/che-starter
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/che-starter
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/che-starter
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    app: che-starter
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: che-starter
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: che-starter
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=che-starter&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/che-starter
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/che-starter
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/che-starter
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/che-starter/target/che-starter-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        app: che-starter
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: GITHUB_TOKEN_URL
+          valueFrom:
+            configMapKeyRef:
+              key: github.tokenurl
+              name: che-starter
+        - name: OPENSHIFT_TOKEN_URL
+          valueFrom:
+            configMapKeyRef:
+              key: oso.tokenurl
+              name: che-starter
+        - name: OSO_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              key: oso.address
+              name: che-starter
+        - name: OSO_DOMAIN_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: oso.domain.name
+              name: che-starter
+        - name: FABRIC8_PLATFORM_DEV_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: fabric8.dev.mode
+              name: che-starter
+        image: rhche/che-starter:7a6345
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 10000
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: che-starter
+        ports:
+        - containerPort: 10000
+          name: ndmp
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 10000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /tmp
+          name: che-starter-volume-1
+      volumes:
+      - emptyDir: {}
+        name: che-starter-volume-1

@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: exposecontroller
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: exposecontroller
+data:
+  config.yml: "apiserver: \nnode-ip: \nexposer: \ndomain: \nwatch-current-namespace:\
+    \ true\nhttp: \ntls-acme: "

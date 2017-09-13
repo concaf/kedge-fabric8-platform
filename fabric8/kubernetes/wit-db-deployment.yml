@@ -1,0 +1,92 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: wit
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=wit&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/wit
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    service: wit-db
+    app: wit
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: wit-db
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: wit
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=wit&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+        pod.alpha.kubernetes.io/init-containers: '[{"image":"busybox","imagePullPolicy":"IfNotPresent","name":"fmp-volume-permission","command":["chmod","777","/var/lib/pgsql"],"volumeMounts":[{"mountPath":"/var/lib/pgsql","name":"wit-postgresql-data"}]}]'
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/wit
+        configmap.fabric8.io/update-on-change: wit
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/wit/target/wit-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        service: wit-db
+        app: wit
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: POSTGRESQL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db.password
+              name: wit
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: registry.centos.org/postgresql/postgresql:9.6
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          failureThreshold: 6
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        name: wit-db
+        ports:
+        - containerPort: 5432
+          name: postgresql
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+        volumeMounts:
+        - mountPath: /var/lib/pgsql
+          name: wit-postgresql-data
+          readOnly: false
+      volumes:
+      - name: wit-postgresql-data
+        persistentVolumeClaim:
+          claimName: wit-postgresql-data

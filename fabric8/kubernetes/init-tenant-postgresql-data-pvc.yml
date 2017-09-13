@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: init-tenant
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: init-tenant-postgresql-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,207 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: wit
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=wit&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/wit
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    service: wit
+    app: wit
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: wit
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: wit
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        pod.beta.kubernetes.io/init-containers: |-
+          [
+          {
+            "name": "wait-for-wit-db",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 postgres://wit@wit-db:5432"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "wait-for-keycloak",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://keycloak:80"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "wait-for-f8tenant",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://f8tenant:80/api/status"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          }]
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=wit&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/wit
+        configmap.fabric8.io/update-on-change: wit
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/wit
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/wit/target/wit-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        service: wit
+        app: wit
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: F8_POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: db.user
+              name: wit
+        - name: F8_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db.password
+              name: wit
+        - name: F8_KEYCLOAK_REALM
+          valueFrom:
+            secretKeyRef:
+              key: keycloak.realm
+              name: wit
+        - name: F8_TOKEN_PUBLICKEY
+          valueFrom:
+            secretKeyRef:
+              key: token.publickey
+              name: wit
+        - name: F8_AUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              key: auth.url
+              name: wit
+        - name: F8_AUTHZ_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: authz.enabled
+              name: wit
+        - name: F8_KEYCLOAK_URL
+          valueFrom:
+            configMapKeyRef:
+              key: keycloak.url
+              name: wit
+        - name: F8_KEYCLOAK_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: keycloak.secret
+              name: wit
+        - name: F8_POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: db.host
+              name: wit
+        - name: F8_POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: db.port
+              name: wit
+        - name: F8_POSTGRES_SSLMODE
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.sslmode
+              name: wit
+        - name: F8_POSTGRES_CONNECTION_MAXIDLE
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxidle
+              name: wit
+        - name: F8_POSTGRES_CONNECTION_MAXOPEN
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxopen
+              name: wit
+        - name: F8_AUTH_NOTAPPROVED_REDIRECT
+          valueFrom:
+            configMapKeyRef:
+              key: auth_notapproved_redirect
+              name: wit
+        - name: F8_TENANT_SERVICEURL
+          valueFrom:
+            secretKeyRef:
+              key: tenantsvc.url
+              name: wit
+        - name: F8_CHESTARTERURL
+          valueFrom:
+            configMapKeyRef:
+              key: chestarter.url
+              name: wit
+        - name: F8_REDIRECT_VALID
+          valueFrom:
+            configMapKeyRef:
+              key: redirect.valid
+              name: wit
+        - name: F8_OPENSHIFT_TENANT_MASTERURL
+          valueFrom:
+            configMapKeyRef:
+              key: openshift.tenant.masterurl
+              name: wit
+        image: fabric8/fabric8-wit:v6dab364
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: wit
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1

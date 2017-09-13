@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    fabric8.io/target-platform: kubernetes
+  labels:
+    provider: fabric8
+    project: docker-registry
+    version: 1.0.1
+    group: io.fabric8.apps
+  name: fabric8-docker-registry-storage
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

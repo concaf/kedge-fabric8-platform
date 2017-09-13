@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    expose.config.fabric8.io/apiserver-key: oso.address
+  labels:
+    app: che-starter
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: che-starter
+data:
+  oso.domain.name: localhost
+  oso.address: localhost:8443
+  oso.tokenurl: http://keycloak/auth/realms/fabric8/broker/openshift-v3/token
+  github.tokenurl: http://keycloak/auth/realms/fabric8/broker/github/token
+  fabric8.dev.mode: "true"

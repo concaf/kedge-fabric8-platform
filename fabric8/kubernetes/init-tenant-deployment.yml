@@ -1,0 +1,205 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: f8tenant
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=init-tenant&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/init-tenant
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/init-tenant
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/init-tenant
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    service: init-tenant
+    app: init-tenant
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: init-tenant
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: init-tenant
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        pod.beta.kubernetes.io/init-containers: |-
+          [
+          {
+            "name": "init-dependencyservice1",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 postgres://f8tenant@init-tenant-db:5432"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "init-dependencyservice2",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://keycloak:80"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          }
+          ]
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=init-tenant&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/init-tenant
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/init-tenant
+        configmap.fabric8.io/update-on-change: f8tenant
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/init-tenant
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/init-tenant/target/init-tenant-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        service: init-tenant
+        app: init-tenant
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: F8_KUBERNETES_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: kubernetes.mode
+              name: f8tenant
+        - name: TENANT_EXPOSER
+          valueFrom:
+            configMapKeyRef:
+              key: tenant.exposer
+              name: f8tenant
+        - name: F8_WIT_URL
+          valueFrom:
+            configMapKeyRef:
+              key: wit.url
+              name: f8tenant
+        - name: F8_KEYCLOAK_URL
+          valueFrom:
+            configMapKeyRef:
+              key: keycloak.url
+              name: f8tenant
+        - name: F8_OPENSHIFT_TENANT_MASTERURL
+          valueFrom:
+            configMapKeyRef:
+              key: openshift.tenant.masterurl
+              name: f8tenant
+        - name: F8_OPENSHIFT_USE_CURRENT_CLUSTER
+          valueFrom:
+            configMapKeyRef:
+              key: openshift.use.current.cluster
+              name: f8tenant
+        - name: F8_API_SERVER_INSECURE_SKIP_TLS_VERIFY
+          valueFrom:
+            configMapKeyRef:
+              key: api.server.insecure.skip.tls.verify
+              name: f8tenant
+        - name: F8_POSTGRES_CONNECTION_MAXIDLE
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxidle
+              name: f8tenant
+        - name: F8_POSTGRES_CONNECTION_MAXOPEN
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxopen
+              name: f8tenant
+        - name: F8_POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              key: postgres.host
+              name: f8tenant
+        - name: F8_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres.password
+              name: f8tenant
+        - name: F8_POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: postgres.port
+              name: f8tenant
+        - name: F8_POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: postgres.user
+              name: f8tenant
+        - name: F8_POSTGRES_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: postgres.database
+              name: f8tenant
+        - name: F8_TEMPLATE_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              key: template.domain
+              name: f8tenant
+        - name: F8_TEMPLATE_RECOMMENDER_EXTERNAL_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: template.recommender.external.name
+              name: f8tenant
+        - name: F8_TEMPLATE_RECOMMENDER_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: template.recommender.api.token
+              name: f8tenant
+        - name: KEYCLOAK_SKIP_HOST_VERIFY
+          valueFrom:
+            configMapKeyRef:
+              key: keycloak.skip.host.verify
+              name: f8tenant
+        - name: DISABLE_OSO_QUOTAS
+          valueFrom:
+            configMapKeyRef:
+              key: disable.oso.quotas
+              name: f8tenant
+        image: fabric8/fabric8-tenant:SNAPSHOT-PR-327-1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: f8tenant
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+      serviceAccountName: init-tenant

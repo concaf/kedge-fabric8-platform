@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    provider: fabric8
+  name: che-starter
+spec:
+  rules:
+  - host: che-starter.fabric8.192.168.42.231.nip.io
+    http:
+      paths:
+      - backend:
+          serviceName: che-starter
+          servicePort: 10000
+

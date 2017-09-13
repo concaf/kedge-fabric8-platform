@@ -1,0 +1,174 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: fabric8
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=fabric8&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/fabric8
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/fabric8
+    fabric8.io/iconUrl: https://cdn.rawgit.com/fabric8io/fabric8-platform/master/apps/fabric8/src/main/fabric8/icon.svg
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/fabric8
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    app: fabric8
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: fabric8
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: fabric8
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        pod.beta.kubernetes.io/init-containers: |-
+          [
+          {
+            "name": "init-dependencyservice1",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://f8tenant:80/api/status"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "init-dependencyservice2",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://wit:80/api/status"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          }
+          ]
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=fabric8&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/fabric8
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/fabric8
+        fabric8.io/iconUrl: https://cdn.rawgit.com/fabric8io/fabric8-platform/master/apps/fabric8/src/main/fabric8/icon.svg
+        configmap.fabric8.io/update-on-change: fabric8
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/fabric8
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/fabric8/target/fabric8-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        app: fabric8
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_MODE
+          value: "true"
+        - name: BRANDING
+          value: fabric8
+        - name: K8S_API_SERVER
+          valueFrom:
+            configMapKeyRef:
+              key: apiserver.host
+              name: fabric8
+        - name: WS_K8S_API_SERVER
+          valueFrom:
+            configMapKeyRef:
+              key: apiserver.host
+              name: fabric8
+        - name: FABRIC8_SSO_API_URL
+          valueFrom:
+            configMapKeyRef:
+              key: keycloak.url
+              name: sso
+        - name: FABRIC8_WIT_API_URL
+          valueFrom:
+            configMapKeyRef:
+              key: wit.api.url
+              name: fabric8
+        - name: FABRIC8_TENANT_API_URL
+          valueFrom:
+            configMapKeyRef:
+              key: f8tenant.api.url
+              name: fabric8
+        - name: FABRIC8_FORGE_API_URL
+          valueFrom:
+            configMapKeyRef:
+              key: forge.api.url
+              name: fabric8
+        - name: OPENSHIFT_CONSOLE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: openshift.console.url
+              name: fabric8
+        - name: FABRIC8_RECOMMENDER_API_URL
+          valueFrom:
+            configMapKeyRef:
+              key: recommender.api.url
+              name: fabric8
+        - name: PROXIED_K8S_API_SERVER
+          valueFrom:
+            configMapKeyRef:
+              key: proxy.pass.server
+              name: fabric8
+        - name: PROXY_PASS_URL
+          valueFrom:
+            configMapKeyRef:
+              key: proxy.pass.url
+              name: fabric8
+        - name: K8S_API_SERVER_PROTOCOL
+          valueFrom:
+            configMapKeyRef:
+              key: apiserver.protocol
+              name: fabric8
+        - name: K8S_API_SERVER_BASE_PATH
+          valueFrom:
+            configMapKeyRef:
+              key: apiserver.base.path
+              name: fabric8
+        - name: WS_K8S_API_SERVER_BASE_PATH
+          valueFrom:
+            configMapKeyRef:
+              key: ws.apiserver.base.path
+              name: fabric8
+        - name: WS_K8S_API_SERVER_PROTOCOL
+          valueFrom:
+            configMapKeyRef:
+              key: ws.apiserver.protocol
+              name: fabric8
+        - name: WS_K8S_API_SERVER
+          valueFrom:
+            configMapKeyRef:
+              key: ws.apiserver.host
+              name: fabric8
+        image: fabric8/fabric8-ui:v2451119
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          initialDelaySeconds: 120
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 10
+        name: fabric8
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          initialDelaySeconds: 20
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 10

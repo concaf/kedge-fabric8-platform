@@ -1,0 +1,201 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: auth
+    fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=auth&var-version=4.0-SNAPSHOT
+    fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/auth
+    fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/auth
+    fabric8.io/git-branch: master
+    fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/auth
+    fabric8.io/scm-tag: app-console-2.0.1
+  labels:
+    service: auth
+    app: auth
+    provider: fabric8
+    version: 4.0-SNAPSHOT
+    group: io.fabric8.platform.apps
+  name: auth
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: auth
+      provider: fabric8
+      group: io.fabric8.platform.apps
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: 2ebbe3448c2a1fd5c903badd7a8b264253f39124
+        pod.beta.kubernetes.io/init-containers: |-
+          [
+          {
+            "name": "wait-for-auth-db",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 postgres://auth@auth-db:5432"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "wait-for-keycloak",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://keycloak:80"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          },
+          {
+            "name": "wait-for-wit",
+            "image": "fabric8/fabric8-dependency-wait-service:v6632df1",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["sh", "-c", "fabric8-dependency-wait-service-linux-amd64 http://wit:80/api/status"],
+            "env": [{
+              "name": "DEPENDENCY_POLL_INTERVAL",
+              "value": "1"
+            }, {
+              "name": "DEPENDENCY_LOG_VERBOSE",
+              "value": "true"
+            }]
+          }]
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=auth&var-version=4.0-SNAPSHOT
+        fabric8.io/scm-con-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/auth
+        fabric8.io/scm-url: http://github.com/fabric8io/fabric8-platform/apps/auth
+        configmap.fabric8.io/update-on-change: auth
+        fabric8.io/git-branch: master
+        fabric8.io/scm-devcon-url: scm:git:git@github.com:fabric8io/fabric8-platform.git/apps/auth
+        fabric8.io/scm-tag: app-console-2.0.1
+        maven.fabric8.io/source-url: jar:file:/home/concaf/fabric8/src/github.com/fabric8io/fabric8-platform/apps/auth/target/auth-4.0-SNAPSHOT.jar!/META-INF/fabric8/kubernetes.yml
+      labels:
+        service: auth
+        app: auth
+        provider: fabric8
+        version: 4.0-SNAPSHOT
+        group: io.fabric8.platform.apps
+    spec:
+      containers:
+      - env:
+        - name: AUTH_POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: db.user
+              name: auth
+        - name: AUTH_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db.password
+              name: auth
+        - name: AUTH_KEYCLOAK_REALM
+          valueFrom:
+            secretKeyRef:
+              key: keycloak.realm
+              name: auth
+        - name: AUTH_TOKEN_PUBLICKEY
+          valueFrom:
+            secretKeyRef:
+              key: token.publickey
+              name: auth
+        - name: AUTH_KEYCLOAK_URL
+          valueFrom:
+            configMapKeyRef:
+              key: keycloak.url
+              name: auth
+        - name: AUTH_WIT_URL
+          valueFrom:
+            configMapKeyRef:
+              key: wit.url
+              name: auth
+        - name: AUTH_KEYCLOAK_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: keycloak.secret
+              name: auth
+        - name: AUTH_POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: db.host
+              name: auth
+        - name: AUTH_POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: db.port
+              name: auth
+        - name: AUTH_POSTGRES_SSLMODE
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.sslmode
+              name: auth
+        - name: AUTH_POSTGRES_CONNECTION_MAXIDLE
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxidle
+              name: auth
+        - name: AUTH_POSTGRES_CONNECTION_MAXOPEN
+          valueFrom:
+            configMapKeyRef:
+              key: postgres.connection.maxopen
+              name: auth
+        - name: AUTH_AUTH_NOTAPPROVED_REDIRECT
+          valueFrom:
+            configMapKeyRef:
+              key: auth_notapproved_redirect
+              name: auth
+        - name: AUTH_TENANT_SERVICEURL
+          valueFrom:
+            secretKeyRef:
+              key: tenantsvc.url
+              name: auth
+        - name: AUTH_CHESTARTERURL
+          valueFrom:
+            configMapKeyRef:
+              key: chestarter.url
+              name: auth
+        - name: AUTH_REDIRECT_VALID
+          valueFrom:
+            configMapKeyRef:
+              key: redirect.valid
+              name: auth
+        - name: AUTH_OPENSHIFT_TENANT_MASTERURL
+          valueFrom:
+            configMapKeyRef:
+              key: openshift.tenant.masterurl
+              name: auth
+        image: fabric8/fabric8-auth:v6a56c54
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8089
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: auth
+        ports:
+        - containerPort: 8089
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status
+            port: 8089
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
