@@ -87,4 +87,17 @@ containers:
 volumes:
 - emptyDir: {}
   name: che-starter-volume-1
-
+configMaps:
+- data:
+    oso.domain.name: localhost
+    oso.address: localhost:8443
+    oso.tokenurl: http://keycloak/auth/realms/fabric8/broker/openshift-v3/token
+    github.tokenurl: http://keycloak/auth/realms/fabric8/broker/github/token
+    fabric8.dev.mode: "true"
+services:
+- ports:
+  - name: 10000-tcp
+    port: 10000
+    protocol: TCP
+    targetPort: 10000
+    endpoint: che-starter.fabric8.192.168.42.231.nip.io
